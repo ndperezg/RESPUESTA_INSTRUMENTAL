@@ -1,0 +1,44 @@
+#* **********************************
+#* NETWORK   (KNETWK): CM
+#* STATION    (KSTNM): HEL
+#* LOCATION   (KHOLE): 10
+#* CHANNEL   (KCMPNM): HHZ
+#* CREATED           : 2013-01-17T16:30:18
+#* START             : 2011-06-19T00:00:00
+#* END               : 2599-12-31T23:59:59
+#* DESCRIPTION       : Santa Helena, Antioquia, Colombia
+#* LATITUDE          : 6.19
+#* LONGITUDE         : -75.53   
+#* ELEVATION         : 2815
+#* DEPTH             : 00.0 
+#* DIP               : 90.0 
+#* AZIMUTH           : 0.0  
+#* SAMPLE RATE       : 100.0
+#* INPUT UNIT        : M
+#* OUTPUT UNIT       : COUNTS
+#* INSTTYPE          : Guralp 3ESP S/N T36659 Seismometer Q330 ID3978 Digitiser
+#* INSTGAIN          :  419430.40 (Count/V)
+#* COMMENT           : N/A
+#* SENSITIVITY       : 2.370e+03 (M/S)
+#* A0                : 0.000000e+07
+#* **********************************
+CM HEL HHZ 10
+419430.40      #count/Volt
+2370           # Volts/(m/s)
+6                             # polos rad/s
+-5.890000e-03	+5.890000e-03 #Hz/s
+-5.890000e-03	-5.890000e-03 #Hz/s
+-6.238160e+01	+1.353920e+02 #Hz/s 
+-6.238160e+01	-1.353920e+02 #Hz/s 
+-3.50e+02	+0.000000e+00 #Hz/s
+-7.5e+01	+0.000000e+00 #Hz/s
+2                             # ceros (vel)
++0.000000e+00	+0.000000e+00 #Hz/s
++0.000000e+00	+0.000000e+00 #Hz/s 
+
+
+
+
+
+
+
