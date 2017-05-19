@@ -1,5 +1,6 @@
 # *-* coding: iso-8859-1 *-*
 from obspy.io.xseed import Parser
+from obspy.core.inventory.response import _pitick2latex
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
 import numpy as np
@@ -30,7 +31,7 @@ def Transfer_calc(poles, zeros, F, Sd, A0, fn):
 		RR.append(Prod(poles,zeros,f))
 		if f == fn:
 			R = Prod(poles,zeros,fn)
-	return np.array(RR), R
+	return C*np.array(RR), R
 
 def error_perc(A0_d, A0_calc):
 	return abs((A0_d - A0_calc)/A0_d)*100
@@ -42,6 +43,7 @@ def argand_plot(poles,zeros,channel_id,starttime,endtime):
 	plt.show()
 
 def Plot_transfer(F, RR, Sd, fn, R, channel_id, starttime, endtime, location, _format):
+	lw=1.5
 	if location == '10':
 		var = 'aceleracion'
 		units = 'cuentas/(m/s^2)'
@@ -59,7 +61,7 @@ def Plot_transfer(F, RR, Sd, fn, R, channel_id, starttime, endtime, location, _f
 	fig = plt.figure()
 
 	ax1 = fig.add_subplot(211)
-	ax1.loglog(F,abs(RR))
+	ax1.loglog(F,abs(RR),lw=lw)
 	#ax1.plot([fn,fn], [0 , abs(R)], color= 'k', linewidth=1.5,linestyle="--")
 	ax1.axvline(x=fn,ymax=1,linewidth=10,linestyle='--',color='k', alpha=0.5)
 	ax1.grid(True)
@@ -74,13 +76,15 @@ def Plot_transfer(F, RR, Sd, fn, R, channel_id, starttime, endtime, location, _f
 
 	# Phase
 	ax2 = fig.add_subplot(212)
-	ax2.semilogx(F,np.angle(RR))
+	ax2.semilogx(F,np.angle(RR),lw=lw)
 	ax2.grid(True)
 	ax2.set_xlim([xmin, xmax])
-	ax2.set_ylim([-np.pi, np.pi])
-	ax2.yaxis.set_major_formatter(mtick.FormatStrFormatter('%5.1f'))
 	plt.xlabel('frecuencia [Hz]')
 	plt.ylabel('Phase [Radianes]')
+	minmax2 = ax2.yaxis.get_data_interval()
+   	yticks2 = np.arange(minmax2[0] - minmax2[0] % (np.pi / 2), minmax2[1] - minmax2[1] % (np.pi / 2) + np.pi, np.pi / 2)
+    	ax2.set_yticks(yticks2)
+    	ax2.set_yticklabels([_pitick2latex(x) for x in yticks2])
 	name_fig = '%s_%s.%s'%(channel_id,starttime,_format)
 	plt.savefig(name_fig,dpi=fig.dpi)
 	print "%s saved"%name_fig
