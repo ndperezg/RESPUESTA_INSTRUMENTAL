@@ -8,6 +8,7 @@ autor Nelson David Perez - nperez@sgc.gov.co
 import argparse
 import sys, os
 import numpy as np
+from obspy.io.xseed import Parser
 from obspy.core.inventory.response import _pitick2latex
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
@@ -34,7 +35,20 @@ def read_GSE(GSE):
 		Gs = (1e9)/(2*np.pi*Gtot*Gd)
 	return poles, zeros, Gs*Gd
 			
-	 		
+def read_SEED(SEED):
+	dataless = Parser(SEED)
+	inv = dataless.get_inventory()
+	chn = list(inv['channels'])
+	for i in range(len(chn)):
+		channel_id, start_date, end_date, instrument = chn[i]['channel_id'], chn[i]['start_date'], chn[i]['end_date'], chn[i]['instrument']
+		print "Channel %s: \t %s \t %s \t %s"%(i, channel_id, start_date, end_date)
+	n = int(raw_input("Ingrese el número del canal que quiere probar\n"))
+	print chn[n]
+	channel_id, start_date, end_date, instrument = chn[n]['channel_id'], chn[n]['start_date'], chn[n]['end_date'], chn[n]['instrument']
+	PAZ = dataless.get_paz(seed_id=channel_id,datetime=start_date)
+	poles, zeros, Sd = PAZ['poles'], PAZ['zeros'], PAZ['sensitivity']
+	return poles, zeros, Sd
+		 		
 
 def read_SAC(SAC):
 	with open(SAC) as sac:
@@ -77,12 +91,18 @@ def dirty(File, f):
 		except:
 			pass
 	if f == 'isola':
-#		try:
+		try:
 			marker = 'd'
 			poles, zeros, Sd = read_Isola(File)
 			print "The file %s was read"%File
-#		except:
-#			pass
+		except:
+			pass
+	if f == 'dataless':
+		try:
+			marker = 'o'
+			poles, zeros, Sd = read_SEED(File)
+		except:
+			pass
 	return poles, zeros, Sd, marker 
 
 def bode_plot_generator(F):
