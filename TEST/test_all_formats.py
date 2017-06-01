@@ -23,7 +23,8 @@ def read_GSE(GSE):
 			if len(split)==2:
 				lines_org.append(line.strip())
 			if 'CAL2' in split:
-				Gtot = float(split[4])	
+				Gtot = float(split[4])
+				label = ".".join((split[1],split[2]))
 			if 'DIG2' in split:
 				Gd = float(split[2])
 			if 'PAZ2' in split:
@@ -33,7 +34,8 @@ def read_GSE(GSE):
 		for k in xrange(nzeros):
 			zeros.append(complex(float(lines_org[k+npoles].split()[0]), float(lines_org[k+npoles].split()[1])))
 		Gs = (1e9)/(2*np.pi*Gtot*Gd)
-	return poles, zeros, Gs*Gd
+		print label	
+	return poles, zeros, Gs*Gd, label
 			
 def read_SEED(SEED):
 	dataless = Parser(SEED)
@@ -43,20 +45,41 @@ def read_SEED(SEED):
 		channel_id, start_date, end_date, instrument = chn[i]['channel_id'], chn[i]['start_date'], chn[i]['end_date'], chn[i]['instrument']
 		print "Channel %s: \t %s \t %s \t %s"%(i, channel_id, start_date, end_date)
 	n = int(raw_input("Ingrese el número del canal que quiere probar\n"))
-	print chn[n]
 	channel_id, start_date, end_date, instrument = chn[n]['channel_id'], chn[n]['start_date'], chn[n]['end_date'], chn[n]['instrument']
 	PAZ = dataless.get_paz(seed_id=channel_id,datetime=start_date)
+	label = ".".join((channel_id.split('.')[1],channel_id.split('.')[3]))
+	print label
 	poles, zeros, Sd = PAZ['poles'], PAZ['zeros'], PAZ['sensitivity']
-	return poles, zeros, Sd
+	return poles, zeros, Sd, label
 		 		
 
 def read_SAC(SAC):
 	with open(SAC) as sac:
-		for line in sac:
-			print repr(line)
-
+		label = ".".join((sac.name.split('_')[3],sac.name.split('_')[4]))
+		print label
+		Sd, poles, zeros = [], [], []
+		lines = sac.readlines()
+		for i in xrange(len(lines)):
+			split = lines[i].split()
+			if 'ZEROS' in split:
+				nz = int(split[1])
+				kz = i+1
+			if 'POLES' in split:
+				np = int(split[1])
+				kp = i+1
+			if 'CONSTANT' in split:
+				C = float(split[1])
+		for j in lines[kz+1:kz+nz]:
+			zeros.append(complex(float(j.strip().split()[0]),float(j.strip().split()[1])))
+		for l in lines[kp:kp+np]:
+			poles.append(complex(float(l.strip().split()[0]),float(l.strip().split()[1])))
+		A0 = A0_calc(poles,zeros,fn=1.0)
+		return poles, zeros, C/A0, label
+ 
 def read_Isola(ISOLA):
 	with open(ISOLA) as isola:
+		label = ".".join((isola.name.split('.')[0][:-3],isola.name.split('.')[0][-3:]))
+		print label
 		org = isola.readlines()
 		numbers, poles, zeros = [], [], []
 		for i in xrange(len(org)):
@@ -72,47 +95,52 @@ def read_Isola(ISOLA):
 			zeros.append(complex(float(numbers[j].split()[0]),float(numbers[j].split()[1])))
 		for l in xrange(kp):
 			poles.append(complex(float(numbers[kz+l].split()[0]),float(numbers[kz+l].split()[1])))
-		return poles, zeros, Sd
+		return poles, zeros, Sd, label
 			
 
 def dirty(File, f):
 	if f == 'gse':
 		try:
 			marker = 'o'
-			poles, zeros, Sd = read_GSE(File)
+			poles, zeros, Sd, label = read_GSE(File)
 			print "The file %s was read"%File
 		except:
 			print "error in file %s"%File
 	if f == 'sac':
 		try:
 			marker = '^'
-			poles, zeros, Sd = read_SAC(File)
+			poles, zeros, Sd, label = read_SAC(File)
 			print "The file %s was read"%File
 		except:
-			pass
+			print "error in file %s"%File
 	if f == 'isola':
 		try:
 			marker = 'd'
-			poles, zeros, Sd = read_Isola(File)
+			poles, zeros, Sd, label = read_Isola(File)
 			print "The file %s was read"%File
 		except:
-			pass
+			print "error in file %s"%File
 	if f == 'dataless':
 		try:
 			marker = 'o'
-			poles, zeros, Sd = read_SEED(File)
+			poles, zeros, Sd, label = read_SEED(File)
+			print "The file %s was read"%File
 		except:
-			pass
-	return poles, zeros, Sd, marker 
+			print "error in file %s"%File
+	return poles, zeros, Sd, label, marker 
 
 def bode_plot_generator(F):
 	xmin = min(F)
 	xmax = max(F)
-	fig = plt.figure()
+	ymin = 1e7
+	ymax = 1e10 
+	fig = plt.figure(figsize=(10,10))
 	ax1 = fig.add_subplot(211)
 	ax1.grid(True)
 	plt.xlabel('')
 	plt.ylabel('Sensibilidad')
+	#ax1.set_xlim([xmin, xmax])
+	#ax1.set_ylim([ymin, ymax])
 	ax1.xaxis.set_major_formatter(mtick.NullFormatter())
 	ax1.yaxis.set_major_locator(mtick.LogLocator(base=10,subs=[1,2,3,4,5,6,7,8,9]))
 
@@ -144,6 +172,7 @@ def main():
 	fn = 1.
 	fig, ax1, ax2 = bode_plot_generator(F)
 	lw=1.5
+	mew=0.15
 	counter = 0
 	for f in files.keys():
 		lst = files[f]
@@ -151,11 +180,11 @@ def main():
 			counter += 1 
 			for i in lst:
 				#print i, f
-				poles, zeros, Sd, marker = dirty(i,f)
+				poles, zeros, Sd, label, marker = dirty(i,f)
 				A0 = A0_calc(poles,zeros,fn)
 				RR, R = Transfer_calc(poles, zeros, F, Sd, A0, fn)
-				ax1.loglog(F,abs(RR),lw=lw, marker=marker, alpha = 0.3)
-				ax2.semilogx(F,np.angle(RR),lw=lw, marker=marker, alpha = 0.3)
+				ax1.loglog(F,abs(RR),lw=lw, marker=marker, mew=mew,alpha = 0.3)
+				ax2.semilogx(F,np.angle(RR),lw=lw, marker=marker,mew=mew, alpha = 0.3)
 		else: 
 			pass
 	if counter > 0:
