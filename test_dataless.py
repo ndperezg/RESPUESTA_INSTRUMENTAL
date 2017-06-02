@@ -96,7 +96,8 @@ if __name__ == '__main__':
 
 	#Parametros de entrada			
 	dataless_name = sys.argv[1]
-	fn = 1. #Frecuencia de normalizacion. Para estados analogos se toma normalmente como  1.0 Hz
+	#Frecuencia de normalizacion. Para estados analogos se toma normalmente como  1.0 Hz
+	fn = float(raw_input("Ingrese el valor de la frecuencia de referencia en Hz\n (Valor recomendado: 1.0 Hz)\n")) 
 
 	#Crea archivo log
 	log_file = open(dataless_name+'.log', 'w')
