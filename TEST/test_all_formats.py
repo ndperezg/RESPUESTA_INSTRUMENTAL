@@ -101,46 +101,42 @@ def read_Isola(ISOLA):
 def dirty(File, f):
 	if f == 'gse':
 		try:
-			marker = 'o'
 			poles, zeros, Sd, label = read_GSE(File)
 			print "The file %s was read"%File
 		except:
 			print "error in file %s"%File
 	if f == 'sac':
 		try:
-			marker = '^'
 			poles, zeros, Sd, label = read_SAC(File)
 			print "The file %s was read"%File
 		except:
 			print "error in file %s"%File
 	if f == 'isola':
 		try:
-			marker = 'd'
 			poles, zeros, Sd, label = read_Isola(File)
 			print "The file %s was read"%File
 		except:
 			print "error in file %s"%File
 	if f == 'dataless':
 		try:
-			marker = 'o'
 			poles, zeros, Sd, label = read_SEED(File)
 			print "The file %s was read"%File
 		except:
 			print "error in file %s"%File
-	return poles, zeros, Sd, label, marker 
+	return poles, zeros, Sd, "_".join((label,f)) 
 
 def bode_plot_generator(F):
 	xmin = min(F)
 	xmax = max(F)
 	ymin = 1e7
 	ymax = 1e10 
-	fig = plt.figure(figsize=(10,10))
+	fig = plt.figure(figsize=(15,10))
 	ax1 = fig.add_subplot(211)
 	ax1.grid(True)
 	plt.xlabel('')
 	plt.ylabel('Sensibilidad')
 	#ax1.set_xlim([xmin, xmax])
-	#ax1.set_ylim([ymin, ymax])
+	#ax1.set_ylim(ymax=ymax)
 	ax1.xaxis.set_major_formatter(mtick.NullFormatter())
 	ax1.yaxis.set_major_locator(mtick.LogLocator(base=10,subs=[1,2,3,4,5,6,7,8,9]))
 
@@ -171,7 +167,7 @@ def main():
 	F = np.arange(.001,100,.001)
 	fn = 1.
 	fig, ax1, ax2 = bode_plot_generator(F)
-	lw=1.5
+	lw=2.5
 	mew=0.15
 	counter = 0
 	for f in files.keys():
@@ -180,14 +176,15 @@ def main():
 			counter += 1 
 			for i in lst:
 				#print i, f
-				poles, zeros, Sd, label, marker = dirty(i,f)
+				poles, zeros, Sd, label = dirty(i,f)
 				A0 = A0_calc(poles,zeros,fn)
 				RR, R = Transfer_calc(poles, zeros, F, Sd, A0, fn)
-				ax1.loglog(F,abs(RR),lw=lw, marker=marker, mew=mew,alpha = 0.3)
-				ax2.semilogx(F,np.angle(RR),lw=lw, marker=marker,mew=mew, alpha = 0.3)
+				ax1.loglog(F,abs(RR),lw=lw,alpha = 0.9)
+				ax2.semilogx(F,np.angle(RR),lw=lw, alpha = 0.9, label = label)
 		else: 
 			pass
 	if counter > 0:
+		plt.legend(loc = 3, prop={'size':10})
 		pi_ticks(ax2)	 
 		plt.show()
 
