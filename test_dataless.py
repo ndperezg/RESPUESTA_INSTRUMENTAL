@@ -3,6 +3,7 @@ from obspy.io.xseed import Parser
 from obspy.core.inventory.response import _pitick2latex
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
+from matplotlib.transforms import blended_transform_factory
 import numpy as np
 import sys
 
@@ -54,7 +55,7 @@ def Plot_transfer(F, RR, Sd, fn, R, channel_id, starttime, endtime, location, _f
 	xmin = min(F)
 	xmax = max(F)
 	ymin = min(abs(RR))
-	ymax = max(abs(RR))
+	ymax = max(abs(RR)) + 1e1
 	xmin,xmax = xmin -(xmax-xmin)/20., xmax+(xmax-xmin)/20.
 	ymin,ymax = ymin -(ymax-ymin)/20., ymax+(ymax-ymin)/20.
 
@@ -62,8 +63,8 @@ def Plot_transfer(F, RR, Sd, fn, R, channel_id, starttime, endtime, location, _f
 
 	ax1 = fig.add_subplot(211)
 	ax1.loglog(F,abs(RR),lw=lw)
-	#ax1.plot([fn,fn], [0 , abs(R)], color= 'k', linewidth=1.5,linestyle="--")
-	ax1.axvline(x=fn,ymax=1,linewidth=10,linestyle='--',color='k', alpha=0.5)
+	ax1.scatter(fn,ymax,linewidth=2, s = 30, marker='o',color='b', label='fn = %s Hz'%fn)
+	ax1.axvline(x=fn,ymax=max(abs(RR)), linewidth=2, linestyle='--')
 	ax1.grid(True)
 	ax1.set_xlim([xmin, xmax])
 	ax1.set_ylim([ymin, ymax])
@@ -77,10 +78,12 @@ def Plot_transfer(F, RR, Sd, fn, R, channel_id, starttime, endtime, location, _f
 	# Phase
 	ax2 = fig.add_subplot(212)
 	ax2.semilogx(F,np.angle(RR),lw=lw)
+	ax2.scatter(fn, 0,linewidth=2, s = 30, marker='o',color='b', label='fn = %s'%fn)
+	plt.legend(loc=1,scatterpoints=1, markerscale=1)
 	ax2.grid(True)
 	ax2.set_xlim([xmin, xmax])
 	plt.xlabel('frecuencia [Hz]')
-	plt.ylabel('Phase [Radianes]')
+	plt.ylabel('Fase [Radianes]')
 	minmax2 = ax2.yaxis.get_data_interval()
    	yticks2 = np.arange(minmax2[0] - minmax2[0] % (np.pi / 2), minmax2[1] - minmax2[1] % (np.pi / 2) + np.pi, np.pi / 2)
     	ax2.set_yticks(yticks2)
