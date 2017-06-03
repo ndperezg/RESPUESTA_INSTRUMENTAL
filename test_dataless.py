@@ -78,7 +78,7 @@ def Plot_transfer(F, RR, Sd, fn, R, channel_id, starttime, endtime, location, _f
 	# Phase
 	ax2 = fig.add_subplot(212)
 	ax2.semilogx(F,np.angle(RR),lw=lw)
-	ax2.scatter(fn, 0,linewidth=2, s = 30, marker='o',color='b', label='fn = %s'%fn)
+	ax2.scatter(fn, 0,linewidth=2, s = 30, marker='o',color='b', label='fn = %s Hz'%fn)
 	plt.legend(loc=1,scatterpoints=1, markerscale=1)
 	ax2.grid(True)
 	ax2.set_xlim([xmin, xmax])
